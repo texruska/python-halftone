@@ -1,6 +1,5 @@
 import halftone
 
-
 h = halftone.Halftone("/Users/phil/Desktop/_testpics/cmyk.jpg")
 h.make(
     style="color",
@@ -10,6 +9,5 @@ h.make(
     percentage=100,
     antialias=True,
     output_quality=80,
-    output_format="png"
-
+    output_format="png",
 )

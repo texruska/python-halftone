@@ -1,4 +1,11 @@
 {
+    "[python]": {
+        "editor.rulers": [
+            72,
+            79
+        ],
+        "editor.formatOnType": true
+    },
     "workbench.colorCustomizations": {
         "tree.indentGuidesStroke": "#00ff00"
     },
