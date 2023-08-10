@@ -52,10 +52,9 @@ class Halftone(object):
             output_quality: Integer, default 75. Only used when saving jpeg images.
         """
 
-        self.check_arguments(
+        _check_arguments(
             angles=angles,
             antialias=antialias,
-            output_format=output_format,
             output_quality=output_quality,
             percentage=percentage,
             sample=sample,
@@ -102,85 +101,6 @@ class Halftone(object):
             )
         elif extension == ".png":
             new.convert("RGB").save(output_filename, "PNG")
-
-    def check_arguments(  # type: ignore
-        self,
-        angles,
-        antialias,
-        output_format,
-        output_quality,
-        percentage,
-        sample,
-        scale,
-        style,
-    ):
-        "Checks all the arguments are valid. Raises TypeError or ValueError if not."
-
-        if not isinstance(angles, list):
-            raise TypeError(
-                "The angles argument must be a list of 4 integers, not '%s'."
-                % angles
-            )
-
-        if style == "grayscale":
-            if len(angles) < 1:
-                raise ValueError(
-                    "The angles argument must be a list of at least 1 integer when "
-                    "style is 'grayscale', but it has %s." % len(angles)
-                )
-        else:
-            if len(angles) != 4:
-                raise ValueError(
-                    "The angles argument must be a list of 4 integers when "
-                    "style is 'color', but it has %s." % len(angles)
-                )
-
-        for a in angles:
-            if not isinstance(a, int):
-                raise ValueError(
-                    "All elements of the angles list must be integers, "
-                    "but it is %s." % angles
-                )
-
-        if not isinstance(antialias, bool):
-            raise TypeError(
-                "The antialias argument must be a boolean, not '%s'."
-                % antialias
-            )
-
-        if not isinstance(output_quality, int):
-            raise TypeError(
-                "The output_quality argument must be an integer, not '%s'."
-                % output_quality
-            )
-        if output_quality < 0 or output_quality > 100:
-            raise ValueError(
-                "The output_quality argument must be between 0 and 100, but it is %s."
-                % output_quality
-            )
-
-        if not isinstance(percentage, (float, int)):
-            raise TypeError(
-                "The percentage argument must be an integer or float, not '%s'."
-                % percentage
-            )
-
-        if not isinstance(sample, int):
-            raise TypeError(
-                "The sample argument must be an integer, not '%s'." % sample
-            )
-
-        if not isinstance(scale, int):
-            raise TypeError(
-                "The scale argument must be an integer, not '%s'." % scale
-            )
-
-        if style not in ["color", "grayscale"]:
-            raise ValueError(
-                "The style argument must be either 'color' or 'grayscale'."
-            )
-
-        return True
 
     def gcr(self, im, percentage):  # type: ignore
         """
@@ -287,3 +207,80 @@ class Halftone(object):
 
             dots.append(half_tone)
         return dots
+
+
+def _check_arguments(  # type: ignore
+    angles,
+    antialias,
+    output_quality,
+    percentage,
+    sample,
+    scale,
+    style,
+):
+    "Checks all the arguments are valid. Raises TypeError or ValueError if not."
+
+    if not isinstance(angles, list):
+        raise TypeError(
+            "The angles argument must be a list of 4 integers, not '%s'."
+            % angles
+        )
+
+    if style == "grayscale":
+        if len(angles) < 1:
+            raise ValueError(
+                "The angles argument must be a list of at least 1 integer when "
+                "style is 'grayscale', but it has %s." % len(angles)
+            )
+    else:
+        if len(angles) != 4:
+            raise ValueError(
+                "The angles argument must be a list of 4 integers when "
+                "style is 'color', but it has %s." % len(angles)
+            )
+
+    for a in angles:
+        if not isinstance(a, int):
+            raise ValueError(
+                "All elements of the angles list must be integers, "
+                "but it is %s." % angles
+            )
+
+    if not isinstance(antialias, bool):
+        raise TypeError(
+            "The antialias argument must be a boolean, not '%s'." % antialias
+        )
+
+    if not isinstance(output_quality, int):
+        raise TypeError(
+            "The output_quality argument must be an integer, not '%s'."
+            % output_quality
+        )
+    if output_quality < 0 or output_quality > 100:
+        raise ValueError(
+            "The output_quality argument must be between 0 and 100, but it is %s."
+            % output_quality
+        )
+
+    if not isinstance(percentage, (float, int)):
+        raise TypeError(
+            "The percentage argument must be an integer or float, not '%s'."
+            % percentage
+        )
+
+    if not isinstance(sample, int):
+        raise TypeError(
+            "The sample argument must be an integer, not '%s'." % sample
+        )
+
+    if not isinstance(scale, int):
+        raise TypeError(
+            "The scale argument must be an integer, not '%s'." % scale
+        )
+
+    if style not in ["color", "grayscale"]:
+        raise ValueError(
+            "The style argument must be either 'color' or 'grayscale'."
+        )
+
+    return True
