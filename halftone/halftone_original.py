@@ -2,28 +2,19 @@
 
 import io
 import pathlib
+from typing import List
 
 from PIL import Image, ImageDraw, ImageStat
 
-"""
-Class: Halftone( path )
-Usage:
-    from halftone import make
-    make('/path/to/image.jpg')
 
-The bulk of this is taken from this Stack Overflow answer by fraxel:
-http://stackoverflow.com/a/10575940/250962
-"""
-
-
-def make(  # type: ignore
-    path,
-    sample=10,
-    scale=1,
-    percentage=0,
-    angles=[0, 15, 30, 45],
-    greyscale=False,
-    antialias=False,
+def make(
+    path: str,
+    sample: int = 10,
+    scale: int = 1,
+    percentage: int = 0,
+    angles: List[int] = [0, 15, 30, 45],
+    greyscale: bool = False,
+    antialias: bool = False,
 ) -> io.BytesIO:
     """
     Leave filename_addition empty to save the image in place.
@@ -34,19 +25,14 @@ def make(  # type: ignore
         percentage: How much of the gray component to remove from the CMY
             channels and put in the K channel.
         angles: A list of angles that each screen channel should be rotated by.
-            Should be 4 integers when style is 'color', at least 1 for 'grayscale'.
+            Should be 4 ints when greyscale is false, else a list of 1 int.
         greyscale: color or greyscale made.
         antialias: boolean.
     """
-
-    _check_arguments(
-        angles=angles,
-        antialias=antialias,
-        percentage=percentage,
-        sample=sample,
-        scale=scale,
-        greyscale=greyscale,
-    )
+    if greyscale:
+        assert len(angles) >= 1
+    else:
+        assert len(angles) >= 4
 
     input_path = pathlib.Path(path)
     im = Image.open(input_path)
@@ -56,20 +42,22 @@ def make(  # type: ignore
     file_extension = image_type.split("/")[1]
 
     if greyscale:
-        angles = angles[:1]
         gray_im = im.convert("L")
         channel_images = _halftone(
-            im, gray_im, sample, scale, angles, antialias
+            im, gray_im, sample, scale, angles[:1], antialias
         )
         new = channel_images[0]
 
     else:
         cmyk = _gcr(im, percentage)
-        channel_images = _halftone(im, cmyk, sample, scale, angles, antialias)
+        channel_images = _halftone(
+            im, cmyk, sample, scale, angles[:4], antialias
+        )
 
         new = Image.merge("CMYK", channel_images)
 
     image_bytes = io.BytesIO()
+    new = new.convert("RGB")
     new.save(image_bytes, file_extension)
     return image_bytes
 
@@ -180,56 +168,3 @@ def _halftone(im, cmyk, sample, scale, angles, antialias):  # type: ignore
 
         dots.append(half_tone)
     return dots
-
-
-def _check_arguments(  # type: ignore
-    angles, antialias, percentage, sample, scale, greyscale
-):
-    "Checks all the arguments are valid. Raises TypeError or ValueError if not."
-
-    if not isinstance(angles, list):
-        raise TypeError(
-            f"The angles argument must be a list of 4 integers, not '{angles}'."
-        )
-
-    if greyscale:
-        if len(angles) < 1:
-            raise ValueError(
-                f"The angles argument must be a list of at least 1 integer when \
-                style is 'grayscale', but it has {len(angles)}."
-            )
-    else:
-        if len(angles) != 4:
-            raise ValueError(
-                f"The angles argument must be a list of 4 integers when \
-                style is 'color', but it has {len(angles)}."
-            )
-
-    for a in angles:
-        if not isinstance(a, int):
-            raise ValueError(
-                f"All elements of the angles list must be integers, \
-                but it is {angles}."
-            )
-
-    if not isinstance(antialias, bool):
-        raise TypeError(
-            f"The antialias argument must be a boolean, not '{antialias}'."
-        )
-
-    if not isinstance(percentage, (float, int)):
-        raise TypeError(
-            f"The percentage argument must be an integer or float, not '{percentage}'."
-        )
-
-    if not isinstance(sample, int):
-        raise TypeError(
-            f"The sample argument must be an integer, not '{sample}'."
-        )
-
-    if not isinstance(scale, int):
-        raise TypeError(
-            f"The scale argument must be an integer, not '{scale}'."
-        )
-
-    return True
