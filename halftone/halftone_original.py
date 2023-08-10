@@ -2,7 +2,7 @@
 
 import os
 
-from PIL import Image, ImageDraw, ImageOps, ImageStat
+from PIL import Image, ImageDraw, ImageStat
 
 """
 Class: Halftone( path )
@@ -63,12 +63,12 @@ def make(  # type: ignore
         extension = ".png"
     # Else, keep the same as the input file.
 
-    output_filename = "%s%s%s" % (f, str(filename_addition), extension)
+    output_filename = f"{f}{filename_addition}{extension}"
 
     try:
         im = Image.open(path)
     except IOError as e:
-        raise Exception("Couldn't open source file '%s'" % (path)) from e
+        raise Exception(f"Couldn't open source file '{path}'") from e
 
     if style == "grayscale":
         angles = angles[:1]
@@ -213,65 +213,61 @@ def _check_arguments(  # type: ignore
 
     if not isinstance(angles, list):
         raise TypeError(
-            "The angles argument must be a list of 4 integers, not '%s'."
-            % angles
+            f"The angles argument must be a list of 4 integers, not '{angles}'."
         )
 
     if style == "grayscale":
         if len(angles) < 1:
             raise ValueError(
-                "The angles argument must be a list of at least 1 integer when "
-                "style is 'grayscale', but it has %s." % len(angles)
+                f"The angles argument must be a list of at least 1 integer when \
+                style is 'grayscale', but it has {len(angles)}."
             )
     else:
         if len(angles) != 4:
             raise ValueError(
-                "The angles argument must be a list of 4 integers when "
-                "style is 'color', but it has %s." % len(angles)
+                f"The angles argument must be a list of 4 integers when \
+                style is 'color', but it has {len(angles)}."
             )
 
     for a in angles:
         if not isinstance(a, int):
             raise ValueError(
-                "All elements of the angles list must be integers, "
-                "but it is %s." % angles
+                f"All elements of the angles list must be integers, \
+                but it is {angles}."
             )
 
     if not isinstance(antialias, bool):
         raise TypeError(
-            "The antialias argument must be a boolean, not '%s'." % antialias
+            f"The antialias argument must be a boolean, not '{antialias}'."
         )
 
     if not isinstance(output_quality, int):
         raise TypeError(
-            "The output_quality argument must be an integer, not '%s'."
-            % output_quality
+            f"The output_quality argument must be an integer, not '{output_quality}'."
         )
     if output_quality < 0 or output_quality > 100:
         raise ValueError(
-            "The output_quality argument must be between 0 and 100, but it is %s."
-            % output_quality
+            f"The output_quality argument must be between 0 and 100, but it is {output_quality}."
         )
 
     if not isinstance(percentage, (float, int)):
         raise TypeError(
-            "The percentage argument must be an integer or float, not '%s'."
-            % percentage
+            f"The percentage argument must be an integer or float, not '{percentage}'."
         )
 
     if not isinstance(sample, int):
         raise TypeError(
-            "The sample argument must be an integer, not '%s'." % sample
+            f"The sample argument must be an integer, not '{sample}'."
         )
 
     if not isinstance(scale, int):
         raise TypeError(
-            "The scale argument must be an integer, not '%s'." % scale
+            f"The scale argument must be an integer, not '{scale}'."
         )
 
     if style not in ["color", "grayscale"]:
         raise ValueError(
-            "The style argument must be either 'color' or 'grayscale'."
+            f"The style argument must be either 'color' or 'grayscale'."
         )
 
     return True
