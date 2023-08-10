@@ -1,5 +1,6 @@
 # flake8: noqa
 
+import io
 import os
 
 from PIL import Image, ImageDraw, ImageStat
@@ -20,13 +21,12 @@ def make(  # type: ignore
     sample=10,
     scale=1,
     percentage=0,
-    filename_addition="_halftoned",
     angles=[0, 15, 30, 45],
     style="color",
     antialias=False,
     output_format="default",
     output_quality=75,
-):
+) -> io.BytesIO:
     """
     Leave filename_addition empty to save the image in place.
     Arguments:
@@ -35,7 +35,6 @@ def make(  # type: ignore
             number of possible dot sizes)
         percentage: How much of the gray component to remove from the CMY
             channels and put in the K channel.
-        filename_addition: What to add to the filename (before the extension).
         angles: A list of angles that each screen channel should be rotated by.
             Should be 4 integers when style is 'color', at least 1 for 'grayscale'.
         style: 'color' or 'grayscale'.
@@ -62,8 +61,6 @@ def make(  # type: ignore
         extension = ".png"
     # Else, keep the same as the input file.
 
-    output_filename = f"{f}{filename_addition}{extension}"
-
     try:
         im = Image.open(path)
     except IOError as e:
@@ -83,12 +80,12 @@ def make(  # type: ignore
 
         new = Image.merge("CMYK", channel_images)
 
+    image_bytes = io.BytesIO()
     if extension == ".jpg":
-        new.save(
-            output_filename, "JPEG", subsampling=0, quality=output_quality
-        )
+        new.save(image_bytes, "JPEG", subsampling=0, quality=output_quality)
     elif extension == ".png":
-        new.convert("RGB").save(output_filename, "PNG")
+        new.convert("RGB").save(image_bytes, "PNG")
+    return image_bytes
 
 
 def _gcr(im, percentage):  # type: ignore
