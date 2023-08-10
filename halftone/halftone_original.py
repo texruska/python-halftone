@@ -23,7 +23,7 @@ def make(  # type: ignore
     scale=1,
     percentage=0,
     angles=[0, 15, 30, 45],
-    style="color",
+    greyscale=False,
     antialias=False,
     output_format="default",
     output_quality=75,
@@ -38,7 +38,7 @@ def make(  # type: ignore
             channels and put in the K channel.
         angles: A list of angles that each screen channel should be rotated by.
             Should be 4 integers when style is 'color', at least 1 for 'grayscale'.
-        style: 'color' or 'grayscale'.
+        greyscale: color or greyscale made.
         antialias: boolean.
         output_format: "default", "jpeg", "png".
         output_quality: Integer, default 75. Only used when saving jpeg images.
@@ -51,7 +51,7 @@ def make(  # type: ignore
         percentage=percentage,
         sample=sample,
         scale=scale,
-        style=style,
+        greyscale=greyscale,
     )
 
     input_path = pathlib.Path(path)
@@ -65,7 +65,7 @@ def make(  # type: ignore
 
     im = Image.open(input_path)
 
-    if style == "grayscale":
+    if greyscale:
         angles = angles[:1]
         gray_im = im.convert("L")
         channel_images = _halftone(
@@ -196,13 +196,7 @@ def _halftone(im, cmyk, sample, scale, angles, antialias):  # type: ignore
 
 
 def _check_arguments(  # type: ignore
-    angles,
-    antialias,
-    output_quality,
-    percentage,
-    sample,
-    scale,
-    style,
+    angles, antialias, output_quality, percentage, sample, scale, greyscale
 ):
     "Checks all the arguments are valid. Raises TypeError or ValueError if not."
 
@@ -211,7 +205,7 @@ def _check_arguments(  # type: ignore
             f"The angles argument must be a list of 4 integers, not '{angles}'."
         )
 
-    if style == "grayscale":
+    if greyscale:
         if len(angles) < 1:
             raise ValueError(
                 f"The angles argument must be a list of at least 1 integer when \
@@ -258,11 +252,6 @@ def _check_arguments(  # type: ignore
     if not isinstance(scale, int):
         raise TypeError(
             f"The scale argument must be an integer, not '{scale}'."
-        )
-
-    if style not in ["color", "grayscale"]:
-        raise ValueError(
-            f"The style argument must be either 'color' or 'grayscale'."
         )
 
     return True
