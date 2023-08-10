@@ -7,9 +7,8 @@ from PIL import Image, ImageDraw, ImageStat
 """
 Class: Halftone( path )
 Usage:
-    import halftone
-    h = halftone.Halftone('/path/to/image.jpg')
-    h.make()
+    from halftone import make
+    make('/path/to/image.jpg')
 
 The bulk of this is taken from this Stack Overflow answer by fraxel:
 http://stackoverflow.com/a/10575940/250962
