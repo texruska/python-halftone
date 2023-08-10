@@ -1,5 +1,6 @@
+# flake8: noqa
+
 import os
-import sys
 
 from PIL import Image, ImageDraw, ImageOps, ImageStat
 
@@ -16,13 +17,13 @@ http://stackoverflow.com/a/10575940/250962
 
 
 class Halftone(object):
-    def __init__(self, path):
+    def __init__(self, path):  # type: ignore
         """
         path is the path to the image we want to halftone.
         """
         self.path = path
 
-    def make(
+    def make(  # type: ignore
         self,
         sample=10,
         scale=1,
@@ -85,7 +86,9 @@ class Halftone(object):
         try:
             im = Image.open(self.path)
         except IOError as e:
-            raise Exception("Couldn't open source file '%s'" % (self.path)) from e
+            raise Exception(
+                "Couldn't open source file '%s'" % (self.path)
+            ) from e
 
         if style == "grayscale":
             angles = angles[:1]
@@ -97,10 +100,11 @@ class Halftone(object):
 
         else:
             cmyk = self.gcr(im, percentage)
-            channel_images = self.halftone(im, cmyk, sample, scale, angles, antialias)
+            channel_images = self.halftone(
+                im, cmyk, sample, scale, angles, antialias
+            )
 
             if save_channels:
-
                 self.save_channel_images(
                     channel_images,
                     channels_style=save_channels_style,
@@ -112,11 +116,13 @@ class Halftone(object):
             new = Image.merge("CMYK", channel_images)
 
         if extension == ".jpg":
-            new.save(output_filename, "JPEG", subsampling=0, quality=output_quality)
+            new.save(
+                output_filename, "JPEG", subsampling=0, quality=output_quality
+            )
         elif extension == ".png":
             new.convert("RGB").save(output_filename, "PNG")
 
-    def check_arguments(
+    def check_arguments(  # type: ignore
         self,
         angles,
         antialias,
@@ -134,22 +140,21 @@ class Halftone(object):
 
         if not isinstance(angles, list):
             raise TypeError(
-                "The angles argument must be a list of 4 integers, not '%s'." % angles
+                "The angles argument must be a list of 4 integers, not '%s'."
+                % angles
             )
 
         if style == "grayscale":
             if len(angles) < 1:
                 raise ValueError(
                     "The angles argument must be a list of at least 1 integer when "
-                    "style is 'grayscale', but it has %s."
-                    % len(angles)
+                    "style is 'grayscale', but it has %s." % len(angles)
                 )
         else:
             if len(angles) != 4:
                 raise ValueError(
                     "The angles argument must be a list of 4 integers when "
-                    "style is 'color', but it has %s."
-                    % len(angles)
+                    "style is 'color', but it has %s." % len(angles)
                 )
 
         for a in angles:
@@ -161,7 +166,8 @@ class Halftone(object):
 
         if not isinstance(antialias, bool):
             raise TypeError(
-                "The antialias argument must be a boolean, not '%s'." % antialias
+                "The antialias argument must be a boolean, not '%s'."
+                % antialias
             )
 
         if output_format not in ["default", "jpeg", "png"]:
@@ -210,7 +216,9 @@ class Halftone(object):
             )
 
         if not isinstance(scale, int):
-            raise TypeError("The scale argument must be an integer, not '%s'." % scale)
+            raise TypeError(
+                "The scale argument must be an integer, not '%s'." % scale
+            )
 
         if style not in ["color", "grayscale"]:
             raise ValueError(
@@ -219,7 +227,7 @@ class Halftone(object):
 
         return True
 
-    def gcr(self, im, percentage):
+    def gcr(self, im, percentage):  # type: ignore
         """
         Basic "Gray Component Replacement" function. Returns a CMYK image with
         percentage gray component removed from the CMY channels and put in the
@@ -235,14 +243,16 @@ class Halftone(object):
         for x in range(im.size[0]):
             for y in range(im.size[1]):
                 gray = int(
-                    min(cmyk[0][x, y], cmyk[1][x, y], cmyk[2][x, y]) * percentage / 100
+                    min(cmyk[0][x, y], cmyk[1][x, y], cmyk[2][x, y])
+                    * percentage
+                    / 100
                 )
                 for i in range(3):
                     cmyk[i][x, y] = cmyk[i][x, y] - gray
                 cmyk[3][x, y] = gray
         return Image.merge("CMYK", cmyk_im)
 
-    def halftone(self, im, cmyk, sample, scale, angles, antialias):
+    def halftone(self, im, cmyk, sample, scale, angles, antialias):  # type: ignore
         """
         Returns list of half-tone images for cmyk image. sample (pixels),
         determines the sample box size from the original image. The maximum
@@ -273,7 +283,6 @@ class Halftone(object):
             # each one:
             for x in range(0, channel.size[0], sample):
                 for y in range(0, channel.size[1], sample):
-
                     # Area we sample to get the level:
                     box = channel.crop((x, y, x + sample, y + sample))
 
@@ -324,7 +333,7 @@ class Halftone(object):
             dots.append(half_tone)
         return dots
 
-    def save_channel_images(
+    def save_channel_images(  # type: ignore
         self,
         channel_images,
         channels_style,
@@ -361,20 +370,17 @@ class Halftone(object):
             i = ImageOps.invert(channel_img)
 
             if channels_style == "color" and count < 3:
-                i = ImageOps.colorize(i, black=channel_names[count][1], white="white")
+                i = ImageOps.colorize(
+                    i, black=channel_names[count][1], white="white"
+                )
 
             if extension == ".jpg":
                 # subsampling=0 seems to make them look crisper.
                 i.convert("CMYK").save(
-                    channel_filename, "JPEG", subsampling=0, quality=output_quality
+                    channel_filename,
+                    "JPEG",
+                    subsampling=0,
+                    quality=output_quality,
                 )
             elif extension == ".png":
                 i.save(channel_filename, "PNG")
-
-
-if __name__ == "__main__":
-
-    path = sys.argv[1]
-
-    h = Halftone(path)
-    h.make()
