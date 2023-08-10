@@ -34,9 +34,6 @@ class Halftone(object):
         antialias=False,
         output_format="default",
         output_quality=75,
-        save_channels=False,
-        save_channels_format="default",
-        save_channels_style="color",
     ):
         """
         Leave filename_addition empty to save the image in place.
@@ -53,10 +50,6 @@ class Halftone(object):
             antialias: boolean.
             output_format: "default", "jpeg", "png".
             output_quality: Integer, default 75. Only used when saving jpeg images.
-            save_channels: Boolean, whether to save the four separate channel images in
-                addition to the main image.
-            save_channels_format: "default", "jpeg", "png".
-            save_channels_style: "color" or "grayscale".
         """
 
         self.check_arguments(
@@ -66,9 +59,6 @@ class Halftone(object):
             output_quality=output_quality,
             percentage=percentage,
             sample=sample,
-            save_channels=save_channels,
-            save_channels_format=save_channels_format,
-            save_channels_style=save_channels_style,
             scale=scale,
             style=style,
         )
@@ -104,15 +94,6 @@ class Halftone(object):
                 im, cmyk, sample, scale, angles, antialias
             )
 
-            if save_channels:
-                self.save_channel_images(
-                    channel_images,
-                    channels_style=save_channels_style,
-                    channels_format=save_channels_format,
-                    output_filename=output_filename,
-                    output_quality=output_quality,
-                )
-
             new = Image.merge("CMYK", channel_images)
 
         if extension == ".jpg":
@@ -130,9 +111,6 @@ class Halftone(object):
         output_quality,
         percentage,
         sample,
-        save_channels,
-        save_channels_format,
-        save_channels_style,
         scale,
         style,
     ):
@@ -170,12 +148,6 @@ class Halftone(object):
                 % antialias
             )
 
-        if output_format not in ["default", "jpeg", "png"]:
-            raise ValueError(
-                "The output_format argument must be one of 'default', "
-                "'jpeg' or 'png', not '%s'." % save_channels_format
-            )
-
         if not isinstance(output_quality, int):
             raise TypeError(
                 "The output_quality argument must be an integer, not '%s'."
@@ -196,23 +168,6 @@ class Halftone(object):
         if not isinstance(sample, int):
             raise TypeError(
                 "The sample argument must be an integer, not '%s'." % sample
-            )
-
-        if not isinstance(save_channels, bool):
-            raise TypeError(
-                "The save_channels argument must be a boolean, not '%s'."
-                % save_channels
-            )
-
-        if save_channels_format not in ["default", "jpeg", "png"]:
-            raise ValueError(
-                "The save_channels_format argument must be one of 'default', "
-                "'jpeg' or 'png', not '%s'." % save_channels_format
-            )
-        if save_channels_style not in ["color", "grayscale"]:
-            raise ValueError(
-                "The save_channels_style argument must be one of "
-                "'color' or 'grayscale', not '%s'." % save_channels_style
             )
 
         if not isinstance(scale, int):
@@ -332,55 +287,3 @@ class Halftone(object):
 
             dots.append(half_tone)
         return dots
-
-    def save_channel_images(  # type: ignore
-        self,
-        channel_images,
-        channels_style,
-        channels_format,
-        output_filename,
-        output_quality,
-    ):
-        """
-        Save the individual CMYK channels as separate images.
-        """
-
-        channel_names = (
-            ("c", "cyan"),
-            ("m", "magenta"),
-            ("y", "yellow"),
-            ("k", "black"),
-        )
-
-        f, extension = os.path.splitext(output_filename)
-
-        if channels_format == "jpeg":
-            extension = ".jpg"
-        elif channels_format.startswith("png"):
-            extension = ".png"
-        # Else, keep the same as the input file.
-
-        for count, channel_img in enumerate(channel_images):
-            channel_filename = "%s_%s%s" % (
-                f,
-                channel_names[count][0],
-                extension,
-            )
-
-            i = ImageOps.invert(channel_img)
-
-            if channels_style == "color" and count < 3:
-                i = ImageOps.colorize(
-                    i, black=channel_names[count][1], white="white"
-                )
-
-            if extension == ".jpg":
-                # subsampling=0 seems to make them look crisper.
-                i.convert("CMYK").save(
-                    channel_filename,
-                    "JPEG",
-                    subsampling=0,
-                    quality=output_quality,
-                )
-            elif extension == ".png":
-                i.save(channel_filename, "PNG")
