@@ -1,7 +1,6 @@
 # flake8: noqa
 
 import io
-import os
 import pathlib
 
 from PIL import Image, ImageDraw, ImageStat
@@ -25,8 +24,6 @@ def make(  # type: ignore
     angles=[0, 15, 30, 45],
     greyscale=False,
     antialias=False,
-    output_format="default",
-    output_quality=75,
 ) -> io.BytesIO:
     """
     Leave filename_addition empty to save the image in place.
@@ -40,14 +37,11 @@ def make(  # type: ignore
             Should be 4 integers when style is 'color', at least 1 for 'grayscale'.
         greyscale: color or greyscale made.
         antialias: boolean.
-        output_format: "default", "jpeg", "png".
-        output_quality: Integer, default 75. Only used when saving jpeg images.
     """
 
     _check_arguments(
         angles=angles,
         antialias=antialias,
-        output_quality=output_quality,
         percentage=percentage,
         sample=sample,
         scale=scale,
@@ -55,15 +49,11 @@ def make(  # type: ignore
     )
 
     input_path = pathlib.Path(path)
-    extension = input_path.suffix
-
-    if output_format == "jpeg":
-        extension = ".jpg"
-    elif output_format.startswith("png"):
-        extension = ".png"
-    # Else, keep the same as the input file.
-
     im = Image.open(input_path)
+    image_type = im.get_format_mimetype()
+
+    assert image_type.startswith("image/")
+    file_extension = image_type.split("/")[1]
 
     if greyscale:
         angles = angles[:1]
@@ -80,10 +70,7 @@ def make(  # type: ignore
         new = Image.merge("CMYK", channel_images)
 
     image_bytes = io.BytesIO()
-    if extension == ".jpg":
-        new.save(image_bytes, "JPEG", subsampling=0, quality=output_quality)
-    elif extension == ".png":
-        new.convert("RGB").save(image_bytes, "PNG")
+    new.save(image_bytes, file_extension)
     return image_bytes
 
 
@@ -196,7 +183,7 @@ def _halftone(im, cmyk, sample, scale, angles, antialias):  # type: ignore
 
 
 def _check_arguments(  # type: ignore
-    angles, antialias, output_quality, percentage, sample, scale, greyscale
+    angles, antialias, percentage, sample, scale, greyscale
 ):
     "Checks all the arguments are valid. Raises TypeError or ValueError if not."
 
@@ -228,15 +215,6 @@ def _check_arguments(  # type: ignore
     if not isinstance(antialias, bool):
         raise TypeError(
             f"The antialias argument must be a boolean, not '{antialias}'."
-        )
-
-    if not isinstance(output_quality, int):
-        raise TypeError(
-            f"The output_quality argument must be an integer, not '{output_quality}'."
-        )
-    if output_quality < 0 or output_quality > 100:
-        raise ValueError(
-            f"The output_quality argument must be between 0 and 100, but it is {output_quality}."
         )
 
     if not isinstance(percentage, (float, int)):
