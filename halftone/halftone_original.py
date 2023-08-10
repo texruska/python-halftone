@@ -2,6 +2,7 @@
 
 import io
 import os
+import pathlib
 
 from PIL import Image, ImageDraw, ImageStat
 
@@ -53,7 +54,8 @@ def make(  # type: ignore
         style=style,
     )
 
-    f, extension = os.path.splitext(path)
+    input_path = pathlib.Path(path)
+    extension = input_path.suffix
 
     if output_format == "jpeg":
         extension = ".jpg"
@@ -61,10 +63,7 @@ def make(  # type: ignore
         extension = ".png"
     # Else, keep the same as the input file.
 
-    try:
-        im = Image.open(path)
-    except IOError as e:
-        raise Exception(f"Couldn't open source file '{path}'") from e
+    im = Image.open(input_path)
 
     if style == "grayscale":
         angles = angles[:1]
