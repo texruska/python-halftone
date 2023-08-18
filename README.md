@@ -1,3 +1,5 @@
+# This README is out of date and needs updating
+
 # python-halftone
 
 A Python 3 module that uses [Pillow][pillow] to give images a halftone effect (see below for examples).

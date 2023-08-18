@@ -5,6 +5,7 @@
 
 Large overhaul to refresh the project
 
+* Simplified library to one function: `halftone.make()`
 * Added Unlicense
 * Changed tooling to use Poetry
 * Updated Pillow to `^10.0.0`
