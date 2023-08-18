@@ -12,7 +12,7 @@ def make(
     sample: int = 10,
     scale: int = 1,
     percentage: int = 0,
-    angles: List[int] = [0, 15, 30, 45],
+    angles: List[int] = [75, 15, 45, 0],
     greyscale: bool = False,
     antialias: bool = False,
 ) -> io.BytesIO:
@@ -35,8 +35,14 @@ def make(
         assert len(angles) >= 4
 
     input_path = pathlib.Path(path)
-    im = Image.open(input_path)
-    image_type = im.get_format_mimetype()
+    original_image = Image.open(input_path)
+    image_type = original_image.get_format_mimetype()
+
+    # remove any transparency
+    original_image = original_image.convert("RGBA")
+    im = Image.new("RGB", original_image.size, (255, 255, 255))
+    im.paste(original_image, mask=original_image.getchannel("A"))
+    im = im.convert("RGB")
 
     assert image_type.startswith("image/")
     file_extension = image_type.split("/")[1]
